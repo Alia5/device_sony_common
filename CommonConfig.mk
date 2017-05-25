@@ -13,7 +13,7 @@
 # limitations under the License.
 
 # Common path
-COMMON_PATH := device/sony/common
+COMMON_PATH := device/sony/common-aosp
 
 TARGET_NO_RADIOIMAGE := true
 TARGET_NO_BOOTLOADER := true
@@ -24,10 +24,11 @@ TARGET_NO_KERNEL := false
 ifneq ($(BOARD_USE_ENFORCING_SELINUX),true)
 BOARD_KERNEL_CMDLINE += androidboot.selinux=permissive
 endif
+BOARD_KERNEL_CMDLINE += user_debug=31
 BOARD_KERNEL_CMDLINE += msm_rtb.filter=0x3F ehci-hcd.park=3
 BOARD_KERNEL_CMDLINE += dwc3.maximum_speed=high dwc3_msm.prop_chg_detect=Y
 BOARD_KERNEL_CMDLINE += coherent_pool=8M
-BOARD_KERNEL_CMDLINE += sched_enable_power_aware=1 user_debug=31
+BOARD_KERNEL_CMDLINE += sched_enable_power_aware=1
 
 TARGET_USERIMAGES_USE_EXT4 := true
 BOARD_CACHEIMAGE_FILE_SYSTEM_TYPE := ext4
@@ -75,6 +76,15 @@ BOARD_SECCOMP_POLICY += $(COMMON_PATH)/seccomp
 # Init configuration for init_sony
 include $(COMMON_PATH)/init/config.mk
 
+# Enable dex-preoptimization to speed up first boot sequence
+ifeq ($(HOST_OS),linux)
+  ifneq ($(TARGET_BUILD_VARIANT),eng)
+    ifeq ($(WITH_DEXPREOPT),)
+      WITH_DEXPREOPT := true
+    endif
+  endif
+endif
+
 BUILD_KERNEL := true
 -include device/sony/common-headers/KernelHeaders.mk
 -include device/sony/common-kernel/KernelConfig.mk
@@ -84,7 +94,7 @@ BUILD_KERNEL := true
 
 # SELinux
 include device/sony/sepolicy/sepolicy.mk
-BOARD_SEPOLICY_DIRS += device/sony/common/sepolicy
+BOARD_SEPOLICY_DIRS += device/sony/common-aosp/sepolicy
 
 # QCOM extras
 -include vendor/qcom/extras/extras.mk
